@@ -1,0 +1,4 @@
+github:
+  service-path: https://api.github.com
+  search-api-url: /search/repositories
+  query: ?q={query}&sort={sort}&order={order}&per_page={&per_page}
