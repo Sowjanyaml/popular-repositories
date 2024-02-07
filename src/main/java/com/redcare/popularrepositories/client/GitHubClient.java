@@ -13,11 +13,11 @@ import java.util.List;
 
 @Component
 public class GitHubClient {
-    @Value("${github.service-path}")
+    @Value("${api.github.service-path}")
     private String SERVICE_PATH;
-    @Value("${github.search-api-url}")
+    @Value("${api.github.search-api-url}")
     private String SEARCH_API_URL;
-    @Value("${github.query}")
+    @Value("${api.github.query}")
     private String QUERY;
     private final RestTemplate restTemplate;
 
