@@ -2,11 +2,24 @@ package com.redcare.popularrepositories.util;
 
 import com.redcare.popularrepositories.exception.DateInFutureException;
 import com.redcare.popularrepositories.exception.InvalidDateException;
+import com.redcare.popularrepositories.exception.InvalidLimitPerPage;
 import org.apache.commons.validator.GenericValidator;
 
 import java.time.LocalDate;
 
-public class DateValidator {
+public class Validator {
+
+    public static void validate(int limit, String fromDate) {
+        validateLimit(limit);
+        dateValidation(fromDate);
+    }
+
+    public static void validateLimit(int limit) {
+        if (limit <= 0) {
+            throw new InvalidLimitPerPage("The value " + limit + " is not a valid page limit. Please enter a valid limit per page.");
+        }
+    }
+
     public static void dateValidation(String fromDate) {
 
         if (!GenericValidator.isDate(fromDate, "yyyy-mm-dd", true)) {

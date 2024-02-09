@@ -3,10 +3,11 @@ package com.redcare.popularrepositories.service;
 import com.redcare.popularrepositories.client.GitHubClient;
 import com.redcare.popularrepositories.exception.InvalidLimitPerPage;
 import com.redcare.popularrepositories.model.github.Item;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,25 +22,30 @@ public class RepositoryServiceTest {
     @Mock
     private GitHubClient gitHubClient;
 
-    @InjectMocks
     private RepositoryService repositoryService;
 
-    public RepositoryServiceTest() {
+    @BeforeEach
+    void setUp() {
         MockitoAnnotations.openMocks(this);
+        repositoryService = new RepositoryService(gitHubClient);
+        ReflectionTestUtils.setField(repositoryService, "SORT_BY", "stars");
+        ReflectionTestUtils.setField(repositoryService, "ORDER_BY", "desc");
+        ReflectionTestUtils.setField(repositoryService, "DATE_PARAMETER", "created");
+        ReflectionTestUtils.setField(repositoryService, "LANGUAGE", "language");
     }
 
     @Test
-    void getPopularRepositories_ValidLimit() {
+    void getPopularRepositories_ValidInputs() {
         // Mocking client response
-        List<Item> expectedRepositories = getItems().subList(0, 2);
+        List<Item> expectedRepositories = getItems();
         when(gitHubClient.searchRepositories(anyString(), anyString(), anyString(), anyInt())).thenReturn(expectedRepositories);
 
         // Calling method under test
-        List<Item> result = repositoryService.getPopularRepositories(2, "2023-01-01", "Java");
+        List<Item> result = repositoryService.getPopularRepositories(1, "2023-01-01", "Java");
 
         // Verifying behavior
         assertEquals(expectedRepositories, result);
-        verify(gitHubClient, times(1)).searchRepositories(eq("created:2023-01-01 language:Java"), eq("stars"), eq("desc"), eq(2));
+        verify(gitHubClient).searchRepositories(eq("created:2023-01-01 language:Java"), eq("stars"), eq("desc"), eq(1));
     }
 
     @Test
@@ -72,19 +78,15 @@ public class RepositoryServiceTest {
     void getPopularRepositories_NoLanguage() {
         // Mocking client response
         List<Item> allRepositories = getItems();
-        List<Item> repositoriesWithoutLanguage = allRepositories.stream()
-                .filter(item -> item.getLanguage() == null)
-                .limit(10)
-                .collect(Collectors.toList());
 
-        when(gitHubClient.searchRepositories(anyString(), anyString(), anyString(), anyInt())).thenReturn(repositoriesWithoutLanguage);
+        when(gitHubClient.searchRepositories(anyString(), anyString(), anyString(), anyInt())).thenReturn(allRepositories);
 
         // Calling method under test
         List<Item> result = repositoryService.getPopularRepositories(10, "2023-01-01", null);
 
         // Verifying behavior
-        assertEquals(repositoriesWithoutLanguage, result);
-        assertEquals(1, result.size());
+        assertEquals(allRepositories, result);
+        assertEquals(4, result.size());
         verify(gitHubClient, times(1)).searchRepositories(eq("created:2023-01-01"), eq("stars"), eq("desc"), eq(10));
     }
 
